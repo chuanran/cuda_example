@@ -34,8 +34,13 @@ __global__ void dot(float *a, float *b, float *c) {
     while (i!=0) {
         if(cache_index < i) {
             cache[cache_index] += cache[cache_index+i];
+            //__syncthreads();   THIS IS NOT ALLOWED and GPU will not work!!!!
         }
         //sync threads  after each iteration of reduction
+        //notice that the "__syncthreads" cannot be placed in the above "if" block
+        //because cuda architecture guarantees that no thread will advance to an instruction beyond the __syncthreads() until every
+        //thread in the block has executed the "syncthreads", however, if the "__syncthreads" is placed into a divergent branch,
+        //some threads block will never go to the branch and hardware will simply continue to wait for these threads, forever.
          __syncthreads();
          i/=2;
     }
